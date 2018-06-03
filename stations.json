@@ -1,0 +1,9 @@
+{
+  "NRJ": "http://stream.p4.no/nrj_mp3_mq?Nettplayer",
+  "P4" : "http://stream.p4.no/p4_mp3_mq?Nettplayer_P4.no",
+  "Cub FM UAE": "http://20073.live.streamtheworld.com/CLUBFMUAEAAC.aac",
+  "NRK Folkemusikk" : "http://lyd.nrk.no/nrk_radio_folkemusikk_mp3_m",
+  "P6 Rock" : "http://stream.p4.no/p6_mp3_mq?Nettplayer_P6.no",
+  "JærRadioen" : "http://stream.jaerradiogruppen.no:8018/;stream.mp3",
+  "NRK P3" : "http://lyd.nrk.no/nrk_radio_p3_mp3_m"
+}
