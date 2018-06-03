@@ -1,7 +1,7 @@
 # pyradio
 > Play your favorite radio station from the terminal
 
-## :floppy_disk: Installation
+## Installation
 
 ```bash
 # clone the repo
@@ -10,7 +10,7 @@ $ git clone https://github.com/sdushantha/pyradio.git
 # install the requirements
 $ pip3 install -r requirements.txt
 ```
-## :hammer: Usage
+## Usage
 ```
 $ python3 pyradio.py
 usage: pyradio.py [-h] [-l] [-p PLAY]
@@ -22,7 +22,19 @@ optional arguments:
   -l, --list            list of all available radio stations
   -p PLAY, --play PLAY  radio station you want to play
 ```
-  
+### Example
+```bash
+$ python3 pyradio.py -p NRJ
+```
+
+## Adding Radio Stations
+To add more stations, add the url to the stream to ```stations.json``` file.
+
+Follow this format:
+```
+"station name" : "link_to_stream"
+```
+
 ## :scroll: License
 MIT License
 
