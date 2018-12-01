@@ -1,95 +1,108 @@
 #!/usr/bin/env python3
 
-import vlc
-import json
 import argparse
+import json
 import signal
 import sys
 import urllib.request
+import vlc
+
+
+# Heh, ripped from the Blender build scripts
+class colors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 
 def show_all_stations():
-	with open("stations.json", "r") as f:
-		stations = json.load(f)
+    with open("stations.json", "r") as f:
+        stations = json.load(f)
 
-	for key in stations.keys():
-		print(key)
+    print("Available stations:")
+    print()
+    for key in stations.keys():
+        print(key)
 
 
 def play_radio(station):
-	with open("stations.json", "r") as f:
-		stations = json.load(f)
+    with open("stations.json", "r") as f:
+        stations = json.load(f)
 
-	# I know this takes some time to start. First it has to 
-	# Check the url and if it works, it takes time get a 
-	# response. The it takes around 10 sec to get get the audio
-	# from the url. I need to find a way to make this faster.
+    try:
+        station_url = stations[station]
+    except KeyError:
+        print(colors.FAIL + "Invalid station. use --stations to list all available stations" + colors.ENDC)
+        sys.exit()
 
-	try:
-		station_url = stations[station]
-	except KeyError:
-		print("Invalid station. --stations to list all of the available stations")
-		sys.exit()
+    # Checking if the url is reachable. If not,
+    # there might be a typo in the stations.json file
+    try:
+        r = urllib.request.urlopen(station_url)
 
-	# Checking if the url is reachable. If not,
-	# there might be a typo in the stations.json file
-	try:
-	    r = urllib.request.urlopen(station_url)
+        if r.getcode() != 200:
+            print(colors.FAIL + "Station not reachable" + colors.ENDC)
+            sys.exit()
+    except urllib.error.URLError:
+        print(colors.FAIL + "Station not reachable" + colors.ENDC)
+        sys.exit()
 
-	    if r.getcode() != 200:
-		    print("Station not reachable")
-		    sys.exit()
-	except urllib.error.URLError:
-		print("Station not reachable")
-		sys.exit()
+    p = vlc.MediaPlayer(station_url)
+    p.play()
 
-	    
-	p = vlc.MediaPlayer(station_url)
-	# Takes some time to start the stream
-	print("Radio will start playing in 10 sec")
-	p.play()
+    # Big print statement
+    print(
+        colors.OKGREEN + "Now playing: " + colors.ENDC
+        + colors.BOLD + station + colors.ENDC
+        + colors.OKGREEN + " at " + colors.ENDC
+        + colors.UNDERLINE + station_url + colors.ENDC
+    )
 
-	running = True
+    try:
+        while True:
+            # Keep program alive
+            pass
 
-	# Dumb trick to keep the script running
-	try:
-		while running:
-		    input("")
-
-	except KeyboardInterrupt:
-		# To make your bash prompt not mess up :)
-		print("")
-		sys.exit()
+    except KeyboardInterrupt:
+        # To make your bash prompt not mess up :)  ~(>.<)~ a man of culture
+        print("")
+        # Stop playback
+        p.stop()
 
 
 def main():
-	# This disables CTRL+Z while the script is running
-	signal.signal(signal.SIGTSTP, signal.SIG_IGN)
+    # This disables CTRL+Z while the script is running
+    signal.signal(signal.SIGTSTP, signal.SIG_IGN)
 
-	parser = argparse.ArgumentParser(description = "Play your favorite radio station from the terminal")
+    parser = argparse.ArgumentParser(description="Play your favorite radio station from the terminal")
 
-	parser.add_argument("-l", "--list",
-		action="store_true",
-		help="list of all available radio stations")
+    parser.add_argument("-l", "--list",
+                        action="store_true",
+                        help="list available radio stations")
 
-	parser.add_argument("-p", "--play",
-	    help="radio station you want to play")
+    parser.add_argument("-p", "--play",
+                        help="play specified radio station")
 
-	args = parser.parse_args()
+    args = parser.parse_args()
+
+    # If argument is given show help
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit()
+
+    if args.play:
+        play_radio(str(args.play))
+        sys.exit()
+
+    elif args.list:
+        show_all_stations()
+        sys.exit()
 
 
-    # if argument is given then show help
-	if len(sys.argv) == 1:
-		parser.print_help()
-		sys.exit()
-
-	if args.play:
-		play_radio(str(args.play))
-
-	elif args.list:
-		show_all_stations()
-		sys.exit()
-
-
-if __name__=="__main__":
-	main()
+if __name__ == "__main__":
+    main()
