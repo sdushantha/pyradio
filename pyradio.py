@@ -20,7 +20,7 @@ class colors:
     UNDERLINE = '\033[4m'
 
 
-def show_all_stations():
+def show_stations():
     with open("stations.json", "r") as f:
         stations = json.load(f)
 
@@ -45,11 +45,13 @@ def play_radio(station):
     try:
         r = urllib.request.urlopen(station_url)
 
+        # 200 is the default HTTP response code
+        # if we get something else, we can not play the stream
         if r.getcode() != 200:
-            print(colors.FAIL + "Station not reachable" + colors.ENDC)
+            print(colors.FAIL + "Station not reachable: HTTP error!" + colors.ENDC)
             sys.exit()
     except urllib.error.URLError:
-        print(colors.FAIL + "Station not reachable" + colors.ENDC)
+        print(colors.FAIL + "Station not reachable: URL error!" + colors.ENDC)
         sys.exit()
 
     p = vlc.MediaPlayer(station_url)
@@ -57,10 +59,10 @@ def play_radio(station):
 
     # Big print statement
     print(
-        colors.OKGREEN + "Now playing: " + colors.ENDC
-        + colors.BOLD + station + colors.ENDC
-        + colors.OKGREEN + " at " + colors.ENDC
-        + colors.UNDERLINE + station_url + colors.ENDC
+            colors.OKGREEN + "Now playing: " + colors.ENDC
+            + colors.BOLD + station + colors.ENDC
+            + colors.OKGREEN + " at " + colors.ENDC
+            + colors.UNDERLINE + station_url + colors.ENDC
     )
 
     try:
@@ -93,15 +95,14 @@ def main():
     # If argument is given show help
     if len(sys.argv) == 1:
         parser.print_help()
-        sys.exit()
 
     if args.play:
         play_radio(str(args.play))
-        sys.exit()
 
     elif args.list:
-        show_all_stations()
-        sys.exit()
+        show_stations()
+
+    sys.exit()
 
 
 if __name__ == "__main__":

@@ -4,7 +4,8 @@
   "Cub FM UAE": "http://20073.live.streamtheworld.com/CLUBFMUAEAAC.aac",
   "NRK Folkemusikk": "http://lyd.nrk.no/nrk_radio_folkemusikk_mp3_m",
   "P6 Rock": "http://stream.p4.no/p6_mp3_mq?Nettplayer_P6.no",
-  "JærRadioen": "http://stream.jaerradiogruppen.no:8018/;stream.mp3",
+  "JaerRadioen": "http://stream.jaerradiogruppen.no:8018/;stream.mp3",
   "NRK P3": "http://lyd.nrk.no/nrk_radio_p3_mp3_m",
-  "radi/u/": "http://radio.dangeru.us:8000/stream.ogg"
+  "radi/u/": "http://radio.dangeru.us:8000/stream.ogg",
+  "NFL": "http://tunein.streamguys1.com/secure-nfl-premium?key47c31b3a731a2a3a85e385f72735aa10c1199c033bfa523670c06bb3eaeff63c"
 }

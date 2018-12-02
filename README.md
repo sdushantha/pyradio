@@ -5,7 +5,7 @@
 
 ```bash
 # clone the repo
-$ git clone https://github.com/sdushantha/pyradio.git
+$ git clone https://github.com/TeilzeitTaco/pyradio.git
 
 # install the requirements
 $ pip3 install -r requirements.txt
@@ -28,14 +28,16 @@ $ python3 pyradio.py -p NRJ
 ```
 
 ## Adding Radio Stations
-To add more stations, add the url to the stream to ```stations.json``` file.
+To add more stations, add the url to the stream to the ```stations.json``` file.
 
 Follow this format:
 ```
-"station name" : "link_to_stream"
+"station name": "link_to_stream"
 ```
 
 ## :scroll: License
 MIT License
 
 Copyright (c) 2018 Siddharth Dushantha
+
+Modified by TeilzeitTaco
