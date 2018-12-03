@@ -35,7 +35,7 @@ Follow this format:
 "station name": "link_to_stream"
 ```
 ### Tutorial: Obtaining TuneIn stream links
-You can add [TuneIn](tunein.com) streams to the ```stations.json``` file.
+You can add [TuneIn](https://tunein.com/) streams to the ```stations.json``` file.
 
 * Navigate your browser to the TuneIn stream page
 * Wait for advertisments to load/play
