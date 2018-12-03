@@ -26,6 +26,7 @@ optional arguments:
 ```
 $ python3 pyradio.py -p radi/u/
 ```
+This example will play the [radi/u/](http://radio.dangeru.us/) stream.
 
 ## Adding Radio Stations
 To add more stations, add the url to the stream to the ```stations.json``` file.
@@ -38,11 +39,12 @@ Follow this format:
 You can add [TuneIn](https://tunein.com/) streams to the ```stations.json``` file.
 
 * Navigate your browser to the TuneIn stream page
-* Wait for advertisments to load/play
+* Wait for advertisements to load/stop playing
 * Press ```F12``` or ```ctrl+shift+i``` to inspect the page (tested on Mozilla Firefox and Google Chrome)
 * Press ```ctrl+f``` and search for ```<audio``` or ```jp_audio```
 * Copy the link after ```src=```
 * Press ```F12``` or ```ctrl+shift+i``` to leave inspect mode
+* Add the link to the ```stations.json``` file.
 
 Source: [Quora](https://www.quora.com/How-do-I-get-a-streaming-URL-for-Tunein)
 
