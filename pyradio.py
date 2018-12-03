@@ -26,8 +26,11 @@ def show_stations():
 
     print("Available stations:")
     print()
-    for key in stations.keys():
-        print(key)
+    for key, value in stations.items():
+
+        # Formatted print
+        print((colors.OKGREEN + "{0:16}" + colors.ENDC + " " + colors.UNDERLINE + "{1}" + colors.ENDC)
+              .format(key, value))
 
 
 def play_radio(station):
