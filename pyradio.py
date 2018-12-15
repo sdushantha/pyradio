@@ -5,42 +5,50 @@ import json
 import signal
 import sys
 import urllib.request
+
 import vlc
+import colorama
 
 
 # Heh, ripped from the Blender build scripts
 class colors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
+    GREEN     = '\033[92m'
+    RED       = '\033[91m'
+    YELLOW    = '\033[93m'
+    BOLD      = '\033[1m'
     UNDERLINE = '\033[4m'
+    ENDC      = '\033[0m'
+
+
+def load_stations():
+    try:
+        with open("stations.json", "r") as f:
+            stations = json.load(f)
+            return stations
+    except Exception:
+        print(colors.RED + "Error loading stations.json. Have you forgot the comma?" + colors.ENDC)
+        sys.exit()
 
 
 def show_stations():
-    with open("stations.json", "r") as f:
-        stations = json.load(f)
+    stations = load_stations()
 
     print("Available stations:")
     print()
     for key, value in stations.items():
 
         # Formatted print
-        print((colors.OKGREEN + "{0:16}" + colors.ENDC + " " + colors.UNDERLINE + "{1}" + colors.ENDC)
+        print((colors.GREEN + "{0:16}" + colors.ENDC + " " + colors.UNDERLINE + "{1}" + colors.ENDC)
               .format(key, value))
 
 
 def play_radio(station):
-    with open("stations.json", "r") as f:
-        stations = json.load(f)
+    stations = load_stations()
 
     try:
         station_url = stations[station]
     except KeyError:
-        print(colors.FAIL + "Invalid station. use --stations to list all available stations" + colors.ENDC)
+        print(colors.RED + "Invalid station. Use --stations to list all available stations." + colors.ENDC)
         sys.exit()
 
     # Checking if the url is reachable. If not,
@@ -51,10 +59,10 @@ def play_radio(station):
         # 200 is the default HTTP response code
         # if we get something else, we can not play the stream
         if r.getcode() != 200:
-            print(colors.FAIL + "Station not reachable: HTTP error!" + colors.ENDC)
+            print(colors.RED + "Station not reachable: HTTP error!" + colors.ENDC)
             sys.exit()
     except urllib.error.URLError:
-        print(colors.FAIL + "Station not reachable: URL error!" + colors.ENDC)
+        print(colors.RED + "Station not reachable: URL error!" + colors.ENDC)
         sys.exit()
 
     p = vlc.MediaPlayer(station_url)
@@ -62,16 +70,22 @@ def play_radio(station):
 
     # Big print statement
     print(
-            colors.OKGREEN + "Now playing: " + colors.ENDC
+            colors.GREEN + "Now playing: " + colors.ENDC
             + colors.BOLD + station + colors.ENDC
-            + colors.OKGREEN + " at " + colors.ENDC
+            + colors.GREEN + " at " + colors.ENDC
             + colors.UNDERLINE + station_url + colors.ENDC
     )
+
+    # Make all vlc errors yellow
+    # This is why we dont use colorama "autoreset=True"
+    print(colors.YELLOW)
 
     try:
         while True:
             # Keep program alive
-            pass
+            # Turns out looping the "pass" statement burns your performance, sorry!
+            input()
+            p.pause()
 
     except KeyboardInterrupt:
         # To make your bash prompt not mess up :)  ~(>.<)~ a man of culture
@@ -81,8 +95,12 @@ def play_radio(station):
 
 
 def main():
-    # This disables CTRL+Z while the script is running
-    signal.signal(signal.SIGTSTP, signal.SIG_IGN)
+    # This disables CTRL+Z while the script is running (only on linux)
+    if sys.platform != "win32":
+        signal.signal(signal.SIGTSTP, signal.SIG_IGN)
+
+    # Initalize colorama
+    colorama.init()
 
     parser = argparse.ArgumentParser(description="Play your favorite radio station from the terminal")
 

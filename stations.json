@@ -6,5 +6,6 @@
   "P6 Rock": "http://stream.p4.no/p6_mp3_mq?Nettplayer_P6.no",
   "JaerRadioen": "http://stream.jaerradiogruppen.no:8018/;stream.mp3",
   "NRK P3": "http://lyd.nrk.no/nrk_radio_p3_mp3_m",
-  "radi/u/": "http://radio.dangeru.us:8000/stream.ogg"
+  "radi/u/": "http://radio.dangeru.us:8000/stream.ogg",
+  "OE3": "https://oe3shoutcast.sf.apa.at/"
 }
