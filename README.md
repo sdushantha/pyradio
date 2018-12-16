@@ -14,14 +14,15 @@ This will clone the repository to your local PC and install the dependencies, py
 ## Usage
 ```
 $ python3 pyradio.py
-usage: pyradio.py [-h] [-l] [-p PLAY]
+usage: pyradio.py [-h] [-l] [-p STAT] [-v VOL]
 
 Play your favorite radio station from the terminal
 
 optional arguments:
   -h, --help            show this help message and exit
   -l, --list            list available radio stations
-  -p PLAY, --play PLAY  play specified radio station
+  -p STAT, --play STAT  play specified radio station
+  -v VOL, --vol VOL     set playback volume (default: 100)
 ```
 ### Example
 ```
