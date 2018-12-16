@@ -33,16 +33,15 @@ def load_stations():
 def show_stations():
     stations = load_stations()
 
-    print("Available stations:")
-    print()
+    print("Available stations:\n")
     for key, value in stations.items():
 
         # Formatted print
-        print((colors.GREEN + "{0:16}" + colors.ENDC + " " + colors.UNDERLINE + "{1}" + colors.ENDC)
+        print((colors.GREEN + "{0:16}" + colors.ENDC + colors.YELLOW + " @ " + colors.ENDC + colors.UNDERLINE + "{1}" + colors.ENDC)
               .format(key, value))
 
 
-def play_radio(station):
+def play_radio(station, vol):
     stations = load_stations()
 
     try:
@@ -66,6 +65,7 @@ def play_radio(station):
         sys.exit()
 
     p = vlc.MediaPlayer(station_url)
+    p.audio_set_volume(vol)   
     p.play()
 
     # Big print statement
@@ -108,8 +108,11 @@ def main():
                         action="store_true",
                         help="list available radio stations")
 
-    parser.add_argument("-p", "--play",
+    parser.add_argument("-p", "--play", metavar="STAT",
                         help="play specified radio station")
+
+    parser.add_argument("-v", "--vol", type=int, default=100,
+                        help="set playback volume (default: 100)")
 
     args = parser.parse_args()
 
@@ -118,7 +121,7 @@ def main():
         parser.print_help()
 
     if args.play:
-        play_radio(str(args.play))
+        play_radio(str(args.play), args.vol)
 
     elif args.list:
         show_stations()
