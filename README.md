@@ -25,10 +25,9 @@ optional arguments:
   -v VOL, --vol VOL     set playback volume (default: 100)
 ```
 ### Example
+```bash
+$ python3 pyradio.py -p NRJ
 ```
-$ python3 pyradio.py -p radi/u/
-```
-This example should play the [radi/u/](http://radio.dangeru.us/) stream.
 
 ## Adding Radio Stations
 To add more stations, add the URL pointing to the stream to the ```stations.json``` file.
@@ -37,24 +36,8 @@ Follow this format:
 ```
 "station name": "link_to_stream"
 ```
-### Tutorial: Obtaining TuneIn stream links
-You can add [TuneIn](https://tunein.com/) streams to the ```stations.json``` file.
-
-* Navigate your browser to the TuneIn stream page
-* Wait for advertisements to load/stop playing
-* Press ```F12``` or ```ctrl+shift+i``` to inspect the page (tested on Mozilla Firefox and Google Chrome)
-* Press ```ctrl+f``` and search for ```audio``` or ```jp_audio```
-* Copy the link after ```src=```
-* Press ```F12``` or ```ctrl+shift+i``` again to leave inspect mode
-* Add the link to the ```stations.json``` file
-
-Source: [Quora](https://www.quora.com/How-do-I-get-a-streaming-URL-for-Tunein)
-
-*Note: I assume that some TuneIn stream URLs are temporary or device-specific. Please report any oddities you may find.*
 
 ## :scroll: License
 MIT License
 
 Copyright (c) 2018 Siddharth Dushantha
-
-Modified by TeilzeitTaco for Windows compatibility, styling and other minor tweaks
