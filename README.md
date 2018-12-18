@@ -4,7 +4,7 @@
 ## Installation
 ```bash
 # clone the repo
-$ git clone https://github.com/TeilzeitTaco/pyradio.git
+$ git clone https://github.com/sdushantha/pyradio
 
 # install the requirements
 $ pip3 install -r requirements.txt
