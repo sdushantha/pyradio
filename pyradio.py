@@ -4,10 +4,11 @@ import argparse
 import json
 import signal
 import sys
-import urllib.request
+import requests
 
 import vlc
 import colorama
+import tunein
 
 
 # Heh, ripped from the Blender build scripts
@@ -41,36 +42,58 @@ def show_stations():
               .format(key, value))
 
 
-def play_radio(station, vol):
+def play_radio(station, vol, database):
     stations = load_stations()
 
     try:
+        # Check stations.json
         station_url = stations[station]
     except KeyError:
-        print(colors.RED + "Invalid station. Use --stations to list all available stations." + colors.ENDC)
-        sys.exit()
+        print(colors.YELLOW + "Station not found in local database." + colors.ENDC)
+
+        # Should we check TuneIn?
+        if not database:
+            station_id  = tunein.query_tunein(station)
+            station_url = tunein.get_tunein_stream(station_id)
+        else:
+            # Throw error if search returned nothing
+            print(colors.RED + "Invalid station. Use --list to list all available stations." + colors.ENDC)
+            sys.exit()
+
+        print(colors.BOLD + "Adding station to database... " + colors.ENDC, end="")
+
+        # Add new station to local database
+        stations[station] = station_url
+        with open('stations.json', 'w') as f:
+            json.dump(stations, f, indent=4, sort_keys=True)
+
+        print(colors.GREEN + "OK!" + colors.ENDC)
 
     # Checking if the url is reachable. If not,
     # there might be a typo in the stations.json file
     try:
-        r = urllib.request.urlopen(station_url)
+        # Set stream to true so we only get the headers and dont load the body
+        # otherwise it would hang and try to load the infinite stream
+        r = requests.get(station_url, stream=True)
 
         # 200 is the default HTTP response code
         # if we get something else, we can not play the stream
-        if r.getcode() != 200:
-            print(colors.RED + "Station not reachable: HTTP error!" + colors.ENDC)
+        if r.status_code != 200:
+            print(colors.RED + "Station not reachable: Site not working: Error " +
+                str(r.status_code) + "!" + colors.ENDC)
+
             sys.exit()
-    except urllib.error.URLError:
-        print(colors.RED + "Station not reachable: URL error!" + colors.ENDC)
+    except requests.ConnectionError:
+        print(colors.RED + "Station not reachable: Unable to connect!" + colors.ENDC)
         sys.exit()
 
     p = vlc.MediaPlayer(station_url)
-    p.audio_set_volume(vol)   
+    p.audio_set_volume(vol)
     p.play()
 
     # Big print statement
     print(
-            colors.GREEN + "Now playing: " + colors.ENDC
+            colors.GREEN + "\nNow playing: " + colors.ENDC
             + colors.BOLD + station + colors.ENDC
             + colors.GREEN + " at " + colors.ENDC
             + colors.UNDERLINE + station_url + colors.ENDC
@@ -106,7 +129,11 @@ def main():
 
     parser.add_argument("-l", "--list",
                         action="store_true",
-                        help="list available radio stations")
+                        help="list all stations in local database")
+
+    parser.add_argument("-d", "--database",
+                        action="store_true",
+                        help="only use local station database")
 
     parser.add_argument("-p", "--play", metavar="STAT",
                         help="play specified radio station")
@@ -121,7 +148,7 @@ def main():
         parser.print_help()
 
     if args.play:
-        play_radio(str(args.play), args.vol)
+        play_radio(str(args.play), args.vol, args.database)
 
     elif args.list:
         show_stations()
