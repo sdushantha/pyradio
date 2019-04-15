@@ -24,7 +24,7 @@ TUNEIN_SEARCH     = "/search/?query="
 TUNEIN_LINKSERVER = "https://opml.radiotime.com/Tune.ashx?id={}&render=json&listenId=1555086519&itemToken=BgUFAAEAAQABAAEAb28BKyAAAAEFAAA&formats=mp3,aac,ogg,flash,html,hls&type=station&serial=a79c8cb1-e983-4dff-a0e2-7b95771e8657&partnerId=RadioTime&version=3.14&itemUrlScheme=secure&reqAttempt=1"
 
 
-def query_tunein(query):
+def query_id(query):
     # Get TuneIn sub-link from the TuneIn search page.
     print(colors.BOLD + "Querying TuneIn... " + colors.ENDC, end='')
 
@@ -53,7 +53,7 @@ def query_tunein(query):
     sys.exit()
 
 
-def get_tunein_stream(station_id):
+def get_stream_link(station_id):
     # Get stream url directly from the TuneIn servers
     # Bonus: Bypasses ads! :D
     print(colors.BOLD + "Getting stream url... " + colors.ENDC, end="")
@@ -69,8 +69,9 @@ def get_tunein_stream(station_id):
     r = requests.get(TUNEIN_LINKSERVER.format(m.group(1)))
     respondedJson = json.loads(r.text)
 
-    # The JSON data may contain more than one entry in the body list,
-    # so we use [0] to just select the first one.
+    # The received JSON data may contain more than one entry in the body list,
+    # for different audio qualities. The best quality is listed first,
+    # so we use [0] to select the first one.
     if respondedJson["body"][0]["url"]:
         print(colors.GREEN + "OK!" + colors.ENDC)
         return respondedJson["body"][0]["url"]

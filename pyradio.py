@@ -34,12 +34,13 @@ def load_stations():
 def show_stations():
     stations = load_stations()
 
-    print("Available stations:\n")
+    print("\nAvailable stations:\n")
     for key, value in stations.items():
 
-        # Formatted print
-        print((colors.GREEN + "{0:16}" + colors.ENDC + colors.YELLOW + " @ " + colors.ENDC + colors.UNDERLINE + "{1}" + colors.ENDC)
-              .format(key, value))
+        # Formatted print, dynamic for longest station name
+        print((colors.GREEN + "{0:" + str(len(max(stations, key=len))) + "}"
+             + colors.ENDC + colors.YELLOW + " @ " + colors.ENDC + colors.UNDERLINE + "{1}" + colors.ENDC)
+             .format(key, value))
 
 
 def play_radio(station, vol, database):
@@ -52,13 +53,13 @@ def play_radio(station, vol, database):
         print(colors.YELLOW + "Station not found in local database." + colors.ENDC)
 
         # Should we check TuneIn?
-        if not database:
-            station_id  = tunein.query_tunein(station)
-            station_url = tunein.get_tunein_stream(station_id)
-        else:
-            # Throw error if search returned nothing
+        if database:
+            # No, user disabled it. Throw error.
             print(colors.RED + "Invalid station. Use --list to list all available stations." + colors.ENDC)
             sys.exit()
+
+        station_id  = tunein.query_id(station)
+        station_url = tunein.get_stream_link(station_id)
 
         print(colors.BOLD + "Adding station to database... " + colors.ENDC, end="")
 
@@ -135,20 +136,22 @@ def main():
                         action="store_true",
                         help="only use local station database")
 
-    parser.add_argument("-p", "--play", metavar="STAT",
+    parser.add_argument("-p", "--play",
+                        metavar="NAME", type=str,
                         help="play specified radio station")
 
-    parser.add_argument("-v", "--vol", type=int, default=100,
+    parser.add_argument("-v", "--volume",
+                        metavar="VOL", type=int, default=100,
                         help="set playback volume (default: 100)")
 
     args = parser.parse_args()
 
-    # If argument is given show help
+    # If program is called without arguments, show help
     if len(sys.argv) == 1:
         parser.print_help()
 
     if args.play:
-        play_radio(str(args.play), args.vol, args.database)
+        play_radio(args.play, args.volume, args.database)
 
     elif args.list:
         show_stations()
