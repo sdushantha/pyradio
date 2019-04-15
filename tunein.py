@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
+import json
 import re
 import requests
-import json
 import sys
 
 
@@ -24,7 +24,7 @@ TUNEIN_FILTER     = "<h2 class=\"container-title__titleHeader___T_Nit\" data-tes
 
 
 def query_data(query):
-    # Get TuneIn sub-link from the TuneIn search page.
+    # Get station name and ID from TuneIn search page
     print(colors.BOLD + "Querying TuneIn... " + colors.ENDC, end='')
 
     # We need to filter the query to make it url conform
@@ -35,7 +35,7 @@ def query_data(query):
     # Get html source code from website
     r = requests.get(TUNEIN_SEARCH + query)
 
-    # Magic regex: only find elements of the stations list and get name and ID.
+    # Magic regex: only find elements of the stations list and get name and ID
     station_id = re.findall(TUNEIN_FILTER, r.text)
 
     # Search successful?
@@ -43,7 +43,7 @@ def query_data(query):
         print(colors.GREEN + "OK!" + colors.ENDC)
         return station_id[0]
 
-    # Throw error
+    # Throw error if unsuccessful
     print(colors.RED + "Error!" + colors.ENDC)
     print(colors.RED + "Unable to get TuneIn ID: Error finding query on TuneIn!" + colors.ENDC)
     sys.exit()

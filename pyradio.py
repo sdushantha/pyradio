@@ -2,12 +2,13 @@
 
 import argparse
 import json
+import requests
 import signal
 import sys
-import requests
 
-import vlc
 import colorama
+import vlc
+
 import tunein
 
 
@@ -142,7 +143,7 @@ def main():
 
         parser.add_argument("station",
                             type=str,
-                            help="name of station to play")
+                            help="name of station to play, checked on TuneIn if unkown")
 
         parser.add_argument("volume",
                             type=int, default=100, nargs='?',

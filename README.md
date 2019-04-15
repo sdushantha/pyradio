@@ -20,7 +20,7 @@ usage: pyradio.py [-h] [-l] [-d] station [volume]
 Play your favorite radio station from the terminal
 
 positional arguments:
-  station         name of station to play
+  station         name of station to play, checked on TuneIn if unkown
   volume          playback volume (default: 100)
 
 optional arguments:
