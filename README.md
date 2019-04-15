@@ -14,17 +14,19 @@ Also, the [VLC media player](https://www.videolan.org/vlc/) must be installed.
 
 ## Usage
 ```
-$ python3 pyradio.py
-usage: pyradio.py [-h] [-l] [-d] [-p STAT] [-v VOL]
+$ python3 pyradio.py -h
+usage: pyradio.py [-h] [-l] [-d] station [volume]
 
 Play your favorite radio station from the terminal
 
+positional arguments:
+  station         name of station to play
+  volume          playback volume (default: 100)
+
 optional arguments:
-  -h, --help            show this help message and exit
-  -l, --list            list all stations in local database
-  -d, --database        only use local station database
-  -p STAT, --play STAT  play specified radio station
-  -v VOL, --vol VOL     set playback volume (default: 100)
+  -h, --help      show this help message and exit
+  -l, --list      list all stations in local database
+  -d, --database  only use local station database
 ```
 ### Example
 ```bash
@@ -43,4 +45,4 @@ Follow this format:
 ## :scroll: License
 MIT License
 
-Copyright (c) 2018 Siddharth Dushantha
+Copyright (c) 2018 Siddharth Dushantha, TeilzeitTaco

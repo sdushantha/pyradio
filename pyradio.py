@@ -58,8 +58,9 @@ def play_radio(station, vol, database):
             print(colors.RED + "Invalid station. Use --list to list all available stations." + colors.ENDC)
             sys.exit()
 
-        station_id  = tunein.query_id(station)
-        station_url = tunein.get_stream_link(station_id)
+        station_data = tunein.query_data(station)
+        station_url  = tunein.get_stream_link(station_data[1])
+        station      = station_data[0] # Set station name as reported by TuneIn
 
         print(colors.BOLD + "Adding station to database... " + colors.ENDC, end="")
 
@@ -132,29 +133,28 @@ def main():
                         action="store_true",
                         help="list all stations in local database")
 
-    parser.add_argument("-d", "--database",
-                        action="store_true",
-                        help="only use local station database")
+    # This way, "station" can be a required positional argument,
+    # but only if "--list" is not given.
+    if not any(elem in sys.argv for elem in ["-l", "--list"]):
+        parser.add_argument("-d", "--database",
+                            action="store_true",
+                            help="only use local station database")
 
-    parser.add_argument("-p", "--play",
-                        metavar="NAME", type=str,
-                        help="play specified radio station")
+        parser.add_argument("station",
+                            type=str,
+                            help="name of station to play")
 
-    parser.add_argument("-v", "--volume",
-                        metavar="VOL", type=int, default=100,
-                        help="set playback volume (default: 100)")
+        parser.add_argument("volume",
+                            type=int, default=100, nargs='?',
+                            help="playback volume (default: 100)")
 
     args = parser.parse_args()
 
-    # If program is called without arguments, show help
-    if len(sys.argv) == 1:
-        parser.print_help()
-
-    if args.play:
-        play_radio(args.play, args.volume, args.database)
-
-    elif args.list:
+    if args.list:
         show_stations()
+
+    elif args.station:
+        play_radio(args.station, args.volume, args.database)
 
     sys.exit()
 

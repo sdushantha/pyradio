@@ -17,14 +17,13 @@ class colors:
 
 
 # TuneIn constants
-TUNEIN_ROOT       = "https://tunein.com"
-TUNEIN_SEARCH     = "/search/?query="
-
 # Hellish link: I dont fully understand it, but it works.
 TUNEIN_LINKSERVER = "https://opml.radiotime.com/Tune.ashx?id={}&render=json&listenId=1555086519&itemToken=BgUFAAEAAQABAAEAb28BKyAAAAEFAAA&formats=mp3,aac,ogg,flash,html,hls&type=station&serial=a79c8cb1-e983-4dff-a0e2-7b95771e8657&partnerId=RadioTime&version=3.14&itemUrlScheme=secure&reqAttempt=1"
+TUNEIN_SEARCH     = "https://tunein.com/search/?query="
+TUNEIN_FILTER     = "<h2 class=\"container-title__titleHeader___T_Nit\" data-testid=\"containerTitle\">Stations<\/h2>.{0,256}data-nexttitle=\"(.{0,64})\" data-nextguideitem=\"(.{0,64})\">"
 
 
-def query_id(query):
+def query_data(query):
     # Get TuneIn sub-link from the TuneIn search page.
     print(colors.BOLD + "Querying TuneIn... " + colors.ENDC, end='')
 
@@ -34,18 +33,15 @@ def query_id(query):
     query = query.replace(".", "")
 
     # Get html source code from website
-    r = requests.get(TUNEIN_ROOT + TUNEIN_SEARCH + query)
+    r = requests.get(TUNEIN_SEARCH + query)
 
-    # Get the link with regex
-    query      = query.replace("%2F", "")
-    query      = query.replace("%20", "-")
-    station_id = re.search("href=\"(.{0,64}" + query + ".{0,64})\/\">",
-        r.text, flags=re.IGNORECASE)
+    # Magic regex: only find elements of the stations list and get name and ID.
+    station_id = re.findall(TUNEIN_FILTER, r.text)
 
-    # Return or throw error
+    # Search successful?
     if station_id:
         print(colors.GREEN + "OK!" + colors.ENDC)
-        return station_id.group(1)
+        return station_id[0]
 
     # Throw error
     print(colors.RED + "Error!" + colors.ENDC)
@@ -58,15 +54,8 @@ def get_stream_link(station_id):
     # Bonus: Bypasses ads! :D
     print(colors.BOLD + "Getting stream url... " + colors.ENDC, end="")
 
-    # We only need the ID, not the whole sub-link
-    m = re.search("-(s.{0,32}$)", station_id)
-    if not m:
-        print(colors.RED + "Error!" + colors.ENDC)
-        print(colors.RED + "Unable to get TuneIn stream: Invalid parameters!" + colors.ENDC)
-        sys.exit()
-
     # Lets request the station server address from the TuneIn database
-    r = requests.get(TUNEIN_LINKSERVER.format(m.group(1)))
+    r = requests.get(TUNEIN_LINKSERVER.format(station_id))
     respondedJson = json.loads(r.text)
 
     # The received JSON data may contain more than one entry in the body list,
