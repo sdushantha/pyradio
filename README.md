@@ -30,7 +30,7 @@ optional arguments:
 ```
 ### Example
 ```bash
-$ python3 pyradio.py -p "NRJ"
+$ python3 pyradio.py "NRJ"
 ```
 
 ## Adding Radio Stations

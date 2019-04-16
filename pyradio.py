@@ -135,8 +135,8 @@ def main():
                         help="list all stations in local database")
 
     # This way, "station" can be a required positional argument,
-    # but only if "--list" is not given.
-    if not any(elem in sys.argv for elem in ["-l", "--list"]):
+    # but only if "--list" is not given. Also, we need to add these parameters if the user called "-h".
+    if not(any(elem in sys.argv for elem in ["-l", "--list"])) or any(elem in sys.argv for elem in ["-h", "--help"]):
         parser.add_argument("-d", "--database",
                             action="store_true",
                             help="only use local station database")
