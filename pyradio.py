@@ -50,6 +50,7 @@ def play_radio(station, vol, database):
     try:
         # Check stations.json
         station_url = stations[station]
+        print(colors.YELLOW + "Station found in local database." + colors.ENDC)
     except KeyError:
         print(colors.YELLOW + "Station not found in local database." + colors.ENDC)
 
@@ -74,21 +75,27 @@ def play_radio(station, vol, database):
 
     # Checking if the url is reachable. If not,
     # there might be a typo in the stations.json file
+    print(colors.BOLD + "Contacting station... " + colors.ENDC, end="")
+
     try:
         # Set stream to true so we only get the headers and dont load the body
         # otherwise it would hang and try to load the infinite stream
-        r = requests.get(station_url, stream=True)
+        with requests.get(station_url, stream=True) as r:
+            # 200 is the default HTTP response code, if we get something else,
+            # we can not play the stream (Debug : https://httpstat.us/)
+            if r.status_code != 200:
+                print(colors.RED + "Error!" + colors.ENDC)
+                print(colors.RED + "Station unreachable: Site not working! Error " +
+                    str(r.status_code) + "!" + colors.ENDC)
 
-        # 200 is the default HTTP response code
-        # if we get something else, we can not play the stream
-        if r.status_code != 200:
-            print(colors.RED + "Station not reachable: Site not working: Error " +
-                str(r.status_code) + "!" + colors.ENDC)
+                sys.exit()
 
-            sys.exit()
     except requests.ConnectionError:
-        print(colors.RED + "Station not reachable: Unable to connect!" + colors.ENDC)
+        print(colors.RED + "Error!" + colors.ENDC)
+        print(colors.RED + "Station unreachable: Unable to connect!" + colors.ENDC)
         sys.exit()
+
+    print(colors.GREEN + "OK!" + colors.ENDC)
 
     p = vlc.MediaPlayer(station_url)
     p.audio_set_volume(vol)

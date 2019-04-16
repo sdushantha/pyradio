@@ -45,27 +45,54 @@ def query_data(query):
 
     # Throw error if unsuccessful
     print(colors.RED + "Error!" + colors.ENDC)
-    print(colors.RED + "Unable to get TuneIn ID: Error finding query on TuneIn!" + colors.ENDC)
+    print(colors.RED + "Unable to get TuneIn ID: Search returned nothing!" + colors.ENDC)
     sys.exit()
 
 
 def get_stream_link(station_id):
-    # Get stream url directly from the TuneIn servers
-    # Bonus: Bypasses ads! :D
+    # Get stream url directly from the TuneIn servers. Bonus: Bypasses ads! :D
     print(colors.BOLD + "Getting stream url... " + colors.ENDC, end="")
 
-    # Lets request the station server address from the TuneIn database
-    r = requests.get(TUNEIN_LINKSERVER.format(station_id))
-    respondedJson = json.loads(r.text)
+    # Lets request the station server address from the TuneIn database.
+    with requests.get(TUNEIN_LINKSERVER.format(station_id)) as r:
+        try:
+            respondedJson = json.loads(r.text)
+        except Exception:
+            # This really should not happen.
+            print(colors.RED + "Error!" + colors.ENDC)
+            print(colors.RED + "Server error: Malformed data!" + colors.ENDC)
+            sys.exit()
 
-    # The received JSON data may contain more than one entry in the body list,
-    # for different audio qualities. The best quality is listed first,
-    # so we use [0] to select the first one.
-    if respondedJson["body"][0]["url"]:
+    # Request successful?
+    if respondedJson["head"]["status"] != "200":
+        print(colors.RED + "Error!" + colors.ENDC)
+        print(colors.RED + "Unable to get TuneIn stream: Server error!" + colors.ENDC)
+        sys.exit()
+
+    # Some stations dont have the direct stream url listed on the TuneIn linkserver.
+    # This is indicated by the "is_direct" flag. If it is the direct link, we return it,
+    # if not, we need to look at the second stage link. Example: "pyradio.py "WBER""
+
+    # Station link is already in JSON, just return it.
+    if respondedJson["body"][0]["is_direct"]:
+        # The received JSON data may contain more than one entry in the body list,
+        # for different audio qualities. The best quality is listed first,
+        # so we use "[0]" to select and return it.
         print(colors.GREEN + "OK!" + colors.ENDC)
         return respondedJson["body"][0]["url"]
 
-    # Throw error
-    print(colors.RED + "Error!" + colors.ENDC)
-    print(colors.RED + "Unable to get TuneIn stream: Server error!" + colors.ENDC)
-    sys.exit()
+    # Station link is not in this JSON, search for more.
+    print(colors.GREEN + "OK!" + colors.ENDC)
+    print(colors.BOLD + "Second stage resolving... " + colors.ENDC, end="")
+
+    # Get new JSON data from the secondary server
+    with requests.get(respondedJson["body"][0]["url"]) as r:
+        try:
+            respondedJson = json.loads(r.text)
+        except Exception:
+            print(colors.RED + "Error!" + colors.ENDC)
+            print(colors.RED + "Server error: Malformed data!" + colors.ENDC)
+            sys.exit()
+
+    print(colors.GREEN + "OK!" + colors.ENDC)
+    return respondedJson["Streams"][0]["Url"]
