@@ -2,12 +2,14 @@
 
 import argparse
 import json
+import requests
 import signal
 import sys
-import urllib.request
 
-import vlc
 import colorama
+import vlc
+
+import tunein
 
 
 # Heh, ripped from the Blender build scripts
@@ -33,44 +35,75 @@ def load_stations():
 def show_stations():
     stations = load_stations()
 
-    print("Available stations:\n")
+    print("\nAvailable stations:\n")
     for key, value in stations.items():
 
-        # Formatted print
-        print((colors.GREEN + "{0:16}" + colors.ENDC + colors.YELLOW + " @ " + colors.ENDC + colors.UNDERLINE + "{1}" + colors.ENDC)
-              .format(key, value))
+        # Formatted print, dynamic for longest station name
+        print((colors.GREEN + "{0:" + str(len(max(stations, key=len))) + "}"
+             + colors.ENDC + colors.YELLOW + " @ " + colors.ENDC + colors.UNDERLINE + "{1}" + colors.ENDC)
+             .format(key, value))
 
 
-def play_radio(station, vol):
+def play_radio(station, vol, database):
     stations = load_stations()
 
     try:
+        # Check stations.json
         station_url = stations[station]
+        print(colors.YELLOW + "Station found in local database." + colors.ENDC)
     except KeyError:
-        print(colors.RED + "Invalid station. Use --stations to list all available stations." + colors.ENDC)
-        sys.exit()
+        print(colors.YELLOW + "Station not found in local database." + colors.ENDC)
+
+        # Should we check TuneIn?
+        if database:
+            # No, user disabled it. Throw error.
+            print(colors.RED + "Invalid station. Use --list to list all available stations." + colors.ENDC)
+            sys.exit()
+
+        station_data = tunein.query_data(station)
+        station_url  = tunein.get_stream_link(station_data[1])
+        station      = station_data[0] # Set station name as reported by TuneIn
+
+        print(colors.BOLD + "Adding station to database... " + colors.ENDC, end="")
+
+        # Add new station to local database
+        stations[station] = station_url
+        with open('stations.json', 'w') as f:
+            json.dump(stations, f, indent=4, sort_keys=True)
+
+        print(colors.GREEN + "OK!" + colors.ENDC)
 
     # Checking if the url is reachable. If not,
     # there might be a typo in the stations.json file
-    try:
-        r = urllib.request.urlopen(station_url)
+    print(colors.BOLD + "Contacting station... " + colors.ENDC, end="")
 
-        # 200 is the default HTTP response code
-        # if we get something else, we can not play the stream
-        if r.getcode() != 200:
-            print(colors.RED + "Station not reachable: HTTP error!" + colors.ENDC)
-            sys.exit()
-    except urllib.error.URLError:
-        print(colors.RED + "Station not reachable: URL error!" + colors.ENDC)
+    try:
+        # Set stream to true so we only get the headers and dont load the body
+        # otherwise it would hang and try to load the infinite stream
+        with requests.get(station_url, stream=True) as r:
+            # 200 is the default HTTP response code, if we get something else,
+            # we can not play the stream (Debug : https://httpstat.us/)
+            if r.status_code != 200:
+                print(colors.RED + "Error!" + colors.ENDC)
+                print(colors.RED + "Station unreachable: Site not working! Error " +
+                    str(r.status_code) + "!" + colors.ENDC)
+
+                sys.exit()
+
+    except requests.ConnectionError:
+        print(colors.RED + "Error!" + colors.ENDC)
+        print(colors.RED + "Station unreachable: Unable to connect!" + colors.ENDC)
         sys.exit()
 
+    print(colors.GREEN + "OK!" + colors.ENDC)
+
     p = vlc.MediaPlayer(station_url)
-    p.audio_set_volume(vol)   
+    p.audio_set_volume(vol)
     p.play()
 
     # Big print statement
     print(
-            colors.GREEN + "Now playing: " + colors.ENDC
+            colors.GREEN + "\nNow playing: " + colors.ENDC
             + colors.BOLD + station + colors.ENDC
             + colors.GREEN + " at " + colors.ENDC
             + colors.UNDERLINE + station_url + colors.ENDC
@@ -106,25 +139,30 @@ def main():
 
     parser.add_argument("-l", "--list",
                         action="store_true",
-                        help="list available radio stations")
+                        help="list all stations in local database")
 
-    parser.add_argument("-p", "--play", metavar="STAT",
-                        help="play specified radio station")
+    # This way, "station" can be a required positional argument,
+    # but only if "--list" is not given. Also, we need to add these parameters if the user called "-h".
+    if not(any(elem in sys.argv for elem in ["-l", "--list"])) or any(elem in sys.argv for elem in ["-h", "--help"]):
+        parser.add_argument("-d", "--database",
+                            action="store_true",
+                            help="only use local station database")
 
-    parser.add_argument("-v", "--vol", type=int, default=100,
-                        help="set playback volume (default: 100)")
+        parser.add_argument("station",
+                            type=str,
+                            help="name of station to play, checked on TuneIn if unkown")
+
+        parser.add_argument("volume",
+                            type=int, default=100, nargs='?',
+                            help="playback volume (default: 100)")
 
     args = parser.parse_args()
 
-    # If argument is given show help
-    if len(sys.argv) == 1:
-        parser.print_help()
-
-    if args.play:
-        play_radio(str(args.play), args.vol)
-
-    elif args.list:
+    if args.list:
         show_stations()
+
+    elif args.station:
+        play_radio(args.station, args.volume, args.database)
 
     sys.exit()
 
