@@ -6,10 +6,13 @@
 # clone the repo
 $ git clone https://github.com/sdushantha/pyradio
 
+# change into the new directory
+$ cd pyradio
+
 # install the requirements
 $ pip3 install -r requirements.txt
 ```
-This will clone the repository to your local PC and install the dependencies, python-vlc, colorama and requests.
+This will clone the repository to your local PC and install the dependencies, `colorama`, `python-vlc`, and `requests`.
 Also, the [VLC media player](https://www.videolan.org/vlc/) must be installed.
 
 ## Usage
@@ -34,8 +37,8 @@ $ python3 pyradio.py "NRJ"
 ```
 
 ## Adding Radio Stations
-```pyradio.py``` will search all unkown radio stations on [TuneIn](https://tunein.com/) and add them to the local database if anything is found.
-Alternatively you also can add a station manually, to do so, add the URL pointing to the stream to the ```stations.json``` file.
+`pyradio.py` will search all unkown radio stations on [TuneIn](https://tunein.com/) and add them to the local database if anything is found.
+Alternatively you also can add a station manually, to do so, add the URL pointing to the stream to the `stations.json` file.
 
 Follow this format:
 ```

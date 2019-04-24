@@ -30,13 +30,13 @@ def query_data(query):
     # We need to filter the query to make it url conform
     query = query.replace(" ", "%20")
     query = query.replace("/", "%2F")
+    query = query.replace("\\", "%5C")
     query = query.replace(".", "")
 
     # Get html source code from website
-    r = requests.get(TUNEIN_SEARCH + query)
-
-    # Magic regex: only find elements of the stations list and get name and ID
-    station_id = re.findall(TUNEIN_FILTER, r.text)
+    with requests.get(TUNEIN_SEARCH + query) as r:
+        # Magic regex: only find elements of the stations list and get name and ID
+        station_id = re.findall(TUNEIN_FILTER, r.text)
 
     # Search successful?
     if station_id:
