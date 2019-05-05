@@ -51,7 +51,7 @@ def query_data(query):
 
 def get_stream_link(station_id):
     # Get stream url directly from the TuneIn servers. Bonus: Bypasses ads! :D
-    print(colors.BOLD + "Getting stream url... " + colors.ENDC, end="")
+    print(colors.BOLD + "Getting stream URL... " + colors.ENDC, end="")
 
     # Lets request the station server address from the TuneIn database.
     with requests.get(TUNEIN_LINKSERVER.format(station_id)) as r:

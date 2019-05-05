@@ -5,6 +5,7 @@ import json
 import requests
 import signal
 import sys
+import time
 
 import colorama
 import vlc
@@ -52,13 +53,13 @@ def play_radio(station, vol, database):
         station_url = stations[station]
         print(colors.YELLOW + "Station found in local database." + colors.ENDC)
     except KeyError:
-        print(colors.YELLOW + "Station not found in local database." + colors.ENDC)
-
         # Should we check TuneIn?
         if database:
             # No, user disabled it. Throw error.
             print(colors.RED + "Invalid station. Use --list to list all available stations." + colors.ENDC)
             sys.exit()
+
+        print(colors.YELLOW + "Station not found in local database." + colors.ENDC)
 
         station_data = tunein.query_data(station)
         station_url  = tunein.get_stream_link(station_data[1])
@@ -97,34 +98,79 @@ def play_radio(station, vol, database):
 
     print(colors.GREEN + "OK!" + colors.ENDC)
 
-    p = vlc.MediaPlayer(station_url)
+    # VLC player magic
+    i = vlc.Instance("--quiet")
+    m = i.media_new(station_url)
+    p = m.player_new_from_media()
     p.audio_set_volume(vol)
     p.play()
 
     # Big print statement
     print(
-            colors.GREEN + "\nNow playing: " + colors.ENDC
-            + colors.BOLD + station + colors.ENDC
-            + colors.GREEN + " at " + colors.ENDC
-            + colors.UNDERLINE + station_url + colors.ENDC
+            colors.GREEN + "\nYou are listening to: " + colors.ENDC +
+            colors.BOLD + station + colors.ENDC +
+            colors.GREEN + " at " + colors.ENDC +
+            colors.UNDERLINE + station_url + colors.ENDC
     )
 
-    # Make all vlc errors yellow
-    # This is why we dont use colorama "autoreset=True"
-    print(colors.YELLOW)
+    oldTitle = None
+    paused   = False
 
-    try:
-        while True:
-            # Keep program alive
-            # Turns out looping the "pass" statement burns your performance, sorry!
-            input()
-            p.pause()
+    while True:
+        try:
+            if not paused:
+                # Get the song title from VLC
+                m.parse()
+                newTitle = m.get_meta(12)
 
-    except KeyboardInterrupt:
-        # To make your bash prompt not mess up :)  ~(>.<)~ a man of culture
-        print("")
-        # Stop playback
-        p.stop()
+                # If the title changed, update the message
+                if newTitle != oldTitle:
+                    oldTitle = newTitle
+                    print(
+                        "\r" + " "*100 + "\r" + # Clear the line
+                        colors.GREEN + "Now playing: " + colors.ENDC +
+                        colors.BOLD + newTitle + colors.ENDC, end=""
+                    )
+
+            time.sleep(1)
+
+        # Ctrl+C pauses the playback.
+        except KeyboardInterrupt:
+            try:
+                oldTitle = None       # We want to update the "Now playing message"
+                paused   = not paused # Invert the paused state
+                p.pause()
+
+                # Only wait for a second Ctrl+C if we are pausing, not if we are unpausing
+                if paused:
+                    print(
+                        "\r" + " "*100 + "\r" + # Clear the line
+                        colors.YELLOW + "-> Press Ctrl+C again to exit!" + colors.ENDC, end=""
+                    )
+
+                    time.sleep(2)
+
+                    # Now we no longer wait for a second Ctrl+C, we are just paused.
+                    print(
+                        "\r" + " "*100 + "\r" + # Clear the line
+                        colors.YELLOW + "-> Playback paused! Ctrl+C to unpause!" + colors.ENDC, end=""
+                    )
+
+                # This is only really visible for stations which dont send song titles
+                else:
+                    print(
+                        "\r" + " "*100 + "\r" + # Clear the line
+                        colors.YELLOW + "-> Playback restarted!" + colors.ENDC, end=""
+                    )
+
+                continue
+
+            # A second Ctrl+C ends the program.
+            except KeyboardInterrupt:
+                # To make your bash prompt not mess up :)  ~(>.<)~ a man of culture
+                print("")
+                p.stop()
+                exit()
 
 
 def main():
