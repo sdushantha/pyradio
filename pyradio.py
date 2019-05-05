@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
 
+# TODO: Ad-blocking. How, you may ask? I sugesst letting the user set a list of
+# "banned" track titles which usally appear when ads are playing, and replacing
+# them either with another radio stream or some pleasant elevator music. As soon
+# as we detect the track title changing again, we can switch back to the radio stream.
+# Also, the same technique could be used to block unwanted "trending" songs!
+# Progress: None
+
+# TODO: Downloading of streams, splitting of the file in seperate music files per
+# title and storing them in an seperate folder. Command line setting to disable
+# file splitting.
+# Progress: File download
+
 import argparse
 import json
 import requests
@@ -107,65 +119,72 @@ def play_radio(station, vol, database):
 
     # Big print statement
     print(
-            colors.GREEN + "\nYou are listening to: " + colors.ENDC +
-            colors.BOLD + station + colors.ENDC +
-            colors.GREEN + " at " + colors.ENDC +
-            colors.UNDERLINE + station_url + colors.ENDC
+        colors.GREEN + "\nYou are listening to: " + colors.ENDC +
+        colors.BOLD + station + colors.ENDC +
+        colors.GREEN + " at " + colors.ENDC +
+        colors.UNDERLINE + station_url + colors.ENDC
     )
 
-    oldTitle = None
-    paused   = False
+    oldTitle = ""
+    playing  = True
 
     while True:
         try:
-            if not paused:
+            if playing:
                 # Get the song title from VLC
                 m.parse()
                 newTitle = m.get_meta(12)
 
+                # A dirty workaround, but it works
+                if not newTitle:
+                    newTitle = ""
+
                 # If the title changed, update the message
                 if newTitle != oldTitle:
-                    oldTitle = newTitle
                     print(
-                        "\r" + " "*100 + "\r" + # Clear the line
+                        "\r" + " "*(13 + len(oldTitle))+ "\r" + # Clear the line
                         colors.GREEN + "Now playing: " + colors.ENDC +
                         colors.BOLD + newTitle + colors.ENDC, end=""
                     )
 
-            time.sleep(1)
+                    oldTitle = newTitle
 
-        # Ctrl+C pauses the playback.
+            time.sleep(1.5)
+
+        # Ctrl+C pauses the playback
         except KeyboardInterrupt:
             try:
-                oldTitle = None       # We want to update the "Now playing message"
-                paused   = not paused # Invert the paused state
+                playing = not playing
                 p.pause()
 
-                # Only wait for a second Ctrl+C if we are pausing, not if we are unpausing
-                if paused:
+                # The pause handling
+                if not playing:
                     print(
-                        "\r" + " "*100 + "\r" + # Clear the line
+                        "\r" + " "*(13 + len(oldTitle)) + "\r" + # Clear the line
                         colors.YELLOW + "-> Press Ctrl+C again to exit!" + colors.ENDC, end=""
                     )
 
+                    # Here we wait for a second signal to end the program...
                     time.sleep(2)
 
-                    # Now we no longer wait for a second Ctrl+C, we are just paused.
+                    # ...and apparently no signal was received. This means we are just paused.
                     print(
-                        "\r" + " "*100 + "\r" + # Clear the line
+                        "\r" + " "*30 + "\r" +
                         colors.YELLOW + "-> Playback paused! Ctrl+C to unpause!" + colors.ENDC, end=""
                     )
 
                 # This is only really visible for stations which dont send song titles
                 else:
+                    oldTitle = "" # We want to update the "Now playing" message
                     print(
-                        "\r" + " "*100 + "\r" + # Clear the line
+                        "\r" + " "*38 + "\r" +
                         colors.YELLOW + "-> Playback restarted!" + colors.ENDC, end=""
                     )
 
+                # Lets return to the main loop
                 continue
 
-            # A second Ctrl+C ends the program.
+            # A second Ctrl+C ends the program
             except KeyboardInterrupt:
                 # To make your bash prompt not mess up :)  ~(>.<)~ a man of culture
                 print("")
