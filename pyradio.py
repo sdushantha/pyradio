@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# TODO: Ad-blocking. How, you may ask? I sugesst letting the user set a list of
+# TODO: Ad-blocking. How, you may ask? I suggest letting the user set a list of
 # "banned" track titles which usally appear when ads are playing, and replacing
 # them either with another radio stream or some pleasant elevator music. As soon
 # as we detect the track title changing again, we can switch back to the radio stream.
