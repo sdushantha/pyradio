@@ -10,7 +10,13 @@
 # TODO: Downloading of streams, splitting of the file in seperate music files per
 # title and storing them in an seperate folder. Command line setting to disable
 # file splitting.
-# Progress: File download
+# Progress: Beta, still kinda unhappy with this.
+
+# TODO: Direct streaming: Let the user pass an URL and add it to the database,
+# then play it.
+# Progress: None
+
+# TODO: Clean this mess!
 
 import argparse
 import json
@@ -22,6 +28,7 @@ import time
 import colorama
 import vlc
 
+import download
 import tunein
 
 
@@ -35,6 +42,7 @@ class colors:
     ENDC      = '\033[0m'
 
 
+# Load the local station database, station.json
 def load_stations():
     try:
         with open("stations.json", "r") as f:
@@ -45,6 +53,7 @@ def load_stations():
         sys.exit()
 
 
+# Outputs a nicly fomatted list of all stations.
 def show_stations():
     stations = load_stations()
 
@@ -57,7 +66,8 @@ def show_stations():
              .format(key, value))
 
 
-def play_radio(station, vol, database):
+# Searches local database, query TuneIn if necessary, perform connection check
+def initalize_radio(station, database):
     stations = load_stations()
 
     try:
@@ -65,9 +75,8 @@ def play_radio(station, vol, database):
         station_url = stations[station]
         print(colors.YELLOW + "Station found in local database." + colors.ENDC)
     except KeyError:
-        # Should we check TuneIn?
+        # User may have disabled TuneIn search. If so, throw error.
         if database:
-            # No, user disabled it. Throw error.
             print(colors.RED + "Invalid station. Use --list to list all available stations." + colors.ENDC)
             sys.exit()
 
@@ -109,7 +118,11 @@ def play_radio(station, vol, database):
         sys.exit()
 
     print(colors.GREEN + "OK!" + colors.ENDC)
+    return [station, station_url]
 
+
+# Main radio logic
+def play_radio(station, station_url, vol):
     # VLC player magic
     i = vlc.Instance("--quiet")
     m = i.media_new(station_url)
@@ -122,10 +135,12 @@ def play_radio(station, vol, database):
         colors.GREEN + "\nYou are listening to: " + colors.ENDC +
         colors.BOLD + station + colors.ENDC +
         colors.GREEN + " at " + colors.ENDC +
-        colors.UNDERLINE + station_url + colors.ENDC
-    )
+        colors.UNDERLINE + station_url + colors.ENDC)
 
-    oldTitle = ""
+    print(colors.YELLOW + "-> Playback started! Ctrl+C to pause!" + colors.ENDC, end="")
+    time.sleep(2)
+
+    oldTitle = " "*37 # Length of the print above
     playing  = True
 
     while True:
@@ -140,18 +155,16 @@ def play_radio(station, vol, database):
                     newTitle = ""
 
                 # If the title changed, update the message
-                if newTitle != oldTitle:
+                if newTitle != oldTitle and newTitle != "":
                     print(
                         "\r" + " "*(13 + len(oldTitle))+ "\r" + # Clear the line
                         colors.GREEN + "Now playing: " + colors.ENDC +
-                        colors.BOLD + newTitle + colors.ENDC, end=""
-                    )
-
+                        colors.BOLD + newTitle + colors.ENDC, end="")
                     oldTitle = newTitle
 
             time.sleep(1.5)
 
-        # Ctrl+C pauses the playback
+        # A single Ctrl+C pauses the playback
         except KeyboardInterrupt:
             try:
                 playing = not playing
@@ -161,8 +174,7 @@ def play_radio(station, vol, database):
                 if not playing:
                     print(
                         "\r" + " "*(13 + len(oldTitle)) + "\r" + # Clear the line
-                        colors.YELLOW + "-> Press Ctrl+C again to exit!" + colors.ENDC, end=""
-                    )
+                        colors.YELLOW + "-> Press Ctrl+C again to exit!" + colors.ENDC, end="")
 
                     # Here we wait for a second signal to end the program...
                     time.sleep(2)
@@ -170,34 +182,34 @@ def play_radio(station, vol, database):
                     # ...and apparently no signal was received. This means we are just paused.
                     print(
                         "\r" + " "*30 + "\r" +
-                        colors.YELLOW + "-> Playback paused! Ctrl+C to unpause!" + colors.ENDC, end=""
-                    )
+                        colors.YELLOW + "-> Playback paused! Ctrl+C to unpause!" + colors.ENDC, end="")
 
-                # This is only really visible for stations which dont send song titles
                 else:
                     oldTitle = "" # We want to update the "Now playing" message
+
+                    # This is only really visible for stations which dont send song titles
                     print(
                         "\r" + " "*38 + "\r" +
-                        colors.YELLOW + "-> Playback restarted!" + colors.ENDC, end=""
-                    )
+                        colors.YELLOW + "-> Playback restarted!" + colors.ENDC, end="")
 
-                # Lets return to the main loop
-                continue
+                continue # ...with the "While True:" loop above!
 
             # A second Ctrl+C ends the program
             except KeyboardInterrupt:
                 # To make your bash prompt not mess up :)  ~(>.<)~ a man of culture
                 print("")
                 p.stop()
-                exit()
+                sys.exit()
 
 
+# Our main function. This runs at program start.
 def main():
     # This disables CTRL+Z while the script is running (only on linux)
     if sys.platform != "win32":
         signal.signal(signal.SIGTSTP, signal.SIG_IGN)
 
     # Initalize colorama
+    # TODO: Look into "autoreset=True"!
     colorama.init()
 
     parser = argparse.ArgumentParser(description="Play your favorite radio station from the terminal")
@@ -213,6 +225,14 @@ def main():
                             action="store_true",
                             help="only use local station database")
 
+        parser.add_argument("-s", "--save",
+                            action="store_true",
+                            help="save stream to files")
+
+        parser.add_argument("-o", "--onefile",
+                            action="store_true",
+                            help="do not split files saved with --save")
+
         parser.add_argument("station",
                             type=str,
                             help="name of station to play, checked on TuneIn if unkown")
@@ -226,9 +246,15 @@ def main():
     if args.list:
         show_stations()
 
-    elif args.station:
-        play_radio(args.station, args.volume, args.database)
+    elif args.station and args.save:
+        station_data = initalize_radio(args.station, args.database)
+        download.download_station(station_data[0], station_data[1], args.onefile)
 
+    elif args.station:
+        station_data = initalize_radio(args.station, args.database)
+        play_radio(station_data[0], station_data[1], args.volume)
+
+    # Why are we still here?
     sys.exit()
 
 
