@@ -23,15 +23,12 @@ TUNEIN_SEARCH     = "https://tunein.com/search/?query="
 TUNEIN_FILTER     = "<h2 class=\"container-title__titleHeader___T_Nit\" data-testid=\"containerTitle\">Stations<\/h2>.{0,256}data-nexttitle=\"(.{0,64})\" data-nextguideitem=\"(.{0,64})\">"
 
 
+# Get a TuneIn station ID and name from an given search term
 def query_data(query):
-    # Get station name and ID from TuneIn search page
     print(colors.BOLD + "Querying TuneIn... " + colors.ENDC, end='')
 
-    # We need to filter the query to make it url conform
-    query = query.replace(" ", "%20")
-    query = query.replace("/", "%2F")
-    query = query.replace("\\", "%5C")
-    query = query.replace(".", "")
+    # We need to filter the query to make it URL conform
+    query = query.replace(" ", "%20").replace("/", "%2F").replace("\\", "%5C").replace(".", "")
 
     # Get html source code from website
     with requests.get(TUNEIN_SEARCH + query) as r:
@@ -49,8 +46,8 @@ def query_data(query):
     sys.exit()
 
 
+# Contact the TuneIn/RadioTime server to retrieve the stream URL. Bonus: Bypasses ads! :D
 def get_stream_link(station_id):
-    # Get stream url directly from the TuneIn servers. Bonus: Bypasses ads! :D
     print(colors.BOLD + "Getting stream URL... " + colors.ENDC, end="")
 
     # Lets request the station server address from the TuneIn database.
@@ -73,7 +70,7 @@ def get_stream_link(station_id):
     # This is indicated by the "is_direct" flag. If it is the direct link, we return it,
     # if not, we need to look at the second stage link. Example: "pyradio.py "WBER""
 
-    # Station link is already in JSON, just return it.
+    # Station link is already in the JSON, just return it.
     if respondedJson["body"][0]["is_direct"]:
         # The received JSON data may contain more than one entry in the body list,
         # for different audio qualities. The best quality is listed first,
