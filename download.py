@@ -21,8 +21,15 @@ class colors:
 
 # Check if a filename is legal and adjust it if otherwise.
 def process_filename(filename):
+    # Filter set for Windows filenames
+    filterSet =  ["/", "\\", "<", ">", "|", ":", "*", "?", "\"", "\n"]
+
+    # Reduced filter set for Linux
+    if sys.platform != "win32":
+        filterSet = ["/"]
+
     # Satanic filter
-    for toReplace in ["/", "\\", "<", ">", "|", ":", "*", "?", "\"", "\n"]:
+    for toReplace in filterSet:
         if toReplace in filename:
             filename = filename.replace(toReplace, "")
 
@@ -58,7 +65,7 @@ def download_station(station, station_url, disable_splitting):
             music_size = int(r.headers["icy-metaint"])
         except KeyError:
             print(colors.RED + "Error!" + colors.ENDC)
-            print(colors.RED + "Pyradio cant download this station!" + colors.ENDC)
+            print(colors.RED + "Pyradio can not download this station!" + colors.ENDC)
             sys.exit()
 
         print(colors.GREEN + "OK!" + colors.ENDC)
@@ -86,7 +93,7 @@ def download_station(station, station_url, disable_splitting):
 
         try:
             while True:
-                # Get all the data!
+                # Read raw bytes from the stream.
                 metadata_size = int.from_bytes(r.raw.read(1), byteorder="big")*16
                 metadata      = r.raw.read(metadata_size)
                 musicdata     = r.raw.read(music_size)
