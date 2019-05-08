@@ -14,7 +14,7 @@
 
 # TODO: Direct streaming: Let the user pass an URL and add it to the database,
 # then play it.
-# Progress: None
+# Progress: Argument
 
 # TODO: Clean this mess!
 
@@ -64,6 +64,8 @@ def show_stations():
         print((colors.GREEN + "{0:" + str(len(max(stations, key=len))) + "}"
              + colors.ENDC + colors.YELLOW + " @ " + colors.ENDC + colors.UNDERLINE + "{1}" + colors.ENDC)
              .format(key, value))
+
+    sys.exit()
 
 
 # Searches local database, query TuneIn if necessary, perform connection check
@@ -122,7 +124,7 @@ def initalize_radio(station, database):
 
 
 # Main radio logic
-def play_radio(station, station_url, vol):
+def play_station(station, station_url, vol):
     # VLC player magic
     i = vlc.Instance("--quiet")
     m = i.media_new(station_url)
@@ -184,13 +186,14 @@ def play_radio(station, station_url, vol):
                         "\r" + " "*30 + "\r" +
                         colors.YELLOW + "-> Playback paused! Ctrl+C to unpause!" + colors.ENDC, end="")
 
-                else:
-                    oldTitle = "" # We want to update the "Now playing" message
+                    continue
 
-                    # This is only really visible for stations which dont send song titles
-                    print(
-                        "\r" + " "*38 + "\r" +
-                        colors.YELLOW + "-> Playback restarted!" + colors.ENDC, end="")
+                oldTitle = "" # We want to update the "Now playing" message
+
+                # This is only really visible for stations which dont send song titles
+                print(
+                    "\r" + " "*38 + "\r" +
+                    colors.YELLOW + "-> Playback restarted!" + colors.ENDC, end="")
 
                 continue # ...with the "While True:" loop above!
 
@@ -204,34 +207,44 @@ def play_radio(station, station_url, vol):
 
 # Our main function. This runs at program start.
 def main():
-    # This disables CTRL+Z while the script is running (only on linux)
+    # This disables Ctrl+Z while the script is running (only on Linux)
     if sys.platform != "win32":
         signal.signal(signal.SIGTSTP, signal.SIG_IGN)
 
+    # TODO: Look into "autoreset=True", rename arguments to better names!
+    # Progress: Arguments
+
     # Initalize colorama
-    # TODO: Look into "autoreset=True"!
     colorama.init()
 
     parser = argparse.ArgumentParser(description="Play your favorite radio station from the terminal")
 
-    parser.add_argument("-l", "--list",
+    parser.add_argument("-p", "--print",
                         action="store_true",
-                        help="list all stations in local database")
+                        help="print a list of all stations in the local database")
 
     # This way, "station" can be a required positional argument,
-    # but only if "--list" is not given. Also, we need to add these parameters if the user called "-h".
-    if not(any(elem in sys.argv for elem in ["-l", "--list"])) or any(elem in sys.argv for elem in ["-h", "--help"]):
-        parser.add_argument("-d", "--database",
+    # but only if "--print" is not given. Also, we need to add these parameters if the user called "-h".
+    if not(any(elem in sys.argv for elem in ["-p", "--print"])) or any(elem in sys.argv for elem in ["-h", "--help"]):
+        parser.add_argument("-l", "--local",
                             action="store_true",
-                            help="only use local station database")
+                            help="only use local station database for URL lookup")
 
-        parser.add_argument("-s", "--save",
+        parser.add_argument("-d", "--download",
                             action="store_true",
-                            help="save stream to files")
+                            help="save stream to files instead of playing")
 
-        parser.add_argument("-o", "--onefile",
+        parser.add_argument("-s", "--split",
                             action="store_true",
-                            help="do not split files saved with --save")
+                            help="do not split files saved with --download")
+
+        parser.add_argument("-c", "--connect",
+                            action="store_true",
+                            help="treat the station argument as a direct URL")
+
+        parser.add_argument("-b", "--block",
+                            action="store_true",
+                            help="block titles specified in blocked.json")
 
         parser.add_argument("station",
                             type=str,
@@ -243,19 +256,19 @@ def main():
 
     args = parser.parse_args()
 
-    if args.list:
+    # Our actions are show_stations(), download_station(), and play_station().
+    # We sys.exit() at the end of each of these.
+
+    if args.print:
         show_stations()
 
-    elif args.station and args.save:
-        station_data = initalize_radio(args.station, args.database)
-        download.download_station(station_data[0], station_data[1], args.onefile)
+    if args.station:
+        station_data = initalize_radio(args.station, args.local)
 
-    elif args.station:
-        station_data = initalize_radio(args.station, args.database)
-        play_radio(station_data[0], station_data[1], args.volume)
+        if args.download:
+            download.download_station(station_data[0], station_data[1], args.split)
 
-    # Why are we still here?
-    sys.exit()
+        play_station(station_data[0], station_data[1], args.volume)
 
 
 if __name__ == "__main__":
