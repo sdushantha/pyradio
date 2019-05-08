@@ -64,6 +64,9 @@ def download_station(station, station_url, disable_splitting):
             # This is our music_size music data block size
             music_size = int(r.headers["icy-metaint"])
         except KeyError:
+            # TODO: Change this so we can actually download stations which dont respond with metaint. Example: "pyradio.py radi/u/ -d"
+            # Progress: None
+
             print(colors.RED + "Error!" + colors.ENDC)
             print(colors.RED + "Pyradio can not download this station!" + colors.ENDC)
             sys.exit()

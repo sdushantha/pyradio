@@ -18,7 +18,7 @@ Also, the [VLC media player](https://www.videolan.org/vlc/) must be installed.
 ## Usage
 ```
 $ python3 pyradio.py -h
-usage: pyradio.py [-h] [-l] [-d] [-s] [-o] station [volume]
+usage: pyradio.py [-h] [-p] [-l] [-d] [-s] [-c] [-b] station [volume]
 
 Play your favorite radio station from the terminal
 
@@ -28,11 +28,14 @@ positional arguments:
 
 optional arguments:
   -h, --help      show this help message and exit
-  -l, --list      list all stations in local database
-  -d, --database  only use local station database
-  -s, --save      save stream to files
-  -o, --onefile   do not split files saved with --save
+  -p, --print     print a list of all stations in the local database
+  -l, --local     only use local station database for URL lookup
+  -d, --download  save stream to files instead of playing
+  -s, --split     do not split files saved with --download
+  -c, --connect   treat the station argument as a direct URL
+  -b, --block     block titles specified in blocked.json
 ```
+
 ### Example
 ```bash
 $ python3 pyradio.py "NRJ"
@@ -48,12 +51,12 @@ Follow this format:
 ```
 
 ## Downloading radio streams
-`pyradio.py` is capable of downloading a stations stream instead of playing it. To use this function, pass the `-s` option.
+`pyradio.py` is capable of downloading a stations stream instead of playing it. To use this function, pass the `-d` option.
 This will create a folder named after the station and save the stream to multiple files, one for each track.
 The splitting wont be perfect, because many stations send the track title shortly after the actual track started.
 A list containing information on when a track was played can be found in `titles.txt`.
 
-To disable the file splitting and instead save everything to a single file, pass the `-o` option.
+To disable the file splitting and instead save everything to a single file, pass the `-s` option.
 
 ## :scroll: License
 MIT License
