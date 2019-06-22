@@ -5,7 +5,7 @@
 # them either with another radio stream or some pleasant elevator music (file/folder).
 # As soon as we detect the track title changing again, we can switch back to the radio stream.
 # Also, the same technique could be used to block unwanted "trending" songs!
-# Progress: Beta
+# Progress: Done!
 
 # TODO: Downloading of streams, splitting of the file in seperate music files per
 # title and storing them in an seperate folder. Command line setting to disable
@@ -185,7 +185,6 @@ def play_station(station_name, station_url, volume):
                         adblock_player.stop()
                         stream_player.audio_set_volume(volume)
 
-                    # TODO: Move to any
                     # Search if any of our blocked phrases are in the new title
                     for toCheck in config["Blocked Titles"]:
                         if toCheck.lower() in newTitle.lower():
