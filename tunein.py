@@ -53,7 +53,7 @@ def get_stream_link(station_id):
     # Lets request the station server address from the TuneIn database.
     with requests.get(TUNEIN_LINKSERVER.format(station_id)) as r:
         try:
-            respondedJson = json.loads(r.text)
+            responded_json = json.loads(r.text)
         except Exception:
             # This really should not happen.
             print(colors.RED + "Error!" + colors.ENDC)
@@ -61,7 +61,7 @@ def get_stream_link(station_id):
             sys.exit()
 
     # Request successful?
-    if respondedJson["head"]["status"] != "200":
+    if responded_json["head"]["status"] != "200":
         print(colors.RED + "Error!" + colors.ENDC)
         print(colors.RED + "Unable to get TuneIn stream: Server error!" + colors.ENDC)
         sys.exit()
@@ -71,25 +71,25 @@ def get_stream_link(station_id):
     # if not, we need to look at the second stage link. Example: "pyradio.py "WBER""
 
     # Station link is already in the JSON, just return it.
-    if respondedJson["body"][0]["is_direct"]:
+    if responded_json["body"][0]["is_direct"]:
         # The received JSON data may contain more than one entry in the body list,
         # for different audio qualities. The best quality is listed first,
         # so we use "[0]" to select and return it.
         print(colors.GREEN + "OK!" + colors.ENDC)
-        return respondedJson["body"][0]["url"]
+        return responded_json["body"][0]["url"]
 
     # Station link is not in this JSON, search for more.
     print(colors.GREEN + "OK!" + colors.ENDC)
     print(colors.BOLD + "Second stage resolving... " + colors.ENDC, end="")
 
     # Get new JSON data from the secondary server
-    with requests.get(respondedJson["body"][0]["url"]) as r:
+    with requests.get(responded_json["body"][0]["url"]) as r:
         try:
-            respondedJson = json.loads(r.text)
+            responded_json = json.loads(r.text)
         except Exception:
             print(colors.RED + "Error!" + colors.ENDC)
             print(colors.RED + "Server error: Malformed data!" + colors.ENDC)
             sys.exit()
 
     print(colors.GREEN + "OK!" + colors.ENDC)
-    return respondedJson["Streams"][0]["Url"]
+    return responded_json["Streams"][0]["Url"]

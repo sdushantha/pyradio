@@ -80,6 +80,8 @@ def download_station(station, station_url, disable_splitting):
             colors.GREEN + " from " + colors.ENDC +
             colors.UNDERLINE + station_url + colors.ENDC)
 
+        print(colors.YELLOW + "-> Ctrl+C to exit!" + colors.ENDC, end="")
+
         # Create folder if it doesnt exist
         if not os.path.exists(station):
             os.mkdir(station)
@@ -116,18 +118,18 @@ def download_station(station, station_url, disable_splitting):
                     if newTitle != oldTitle:
                         oldTitle = newTitle
 
-                        # Open the new music file for the title
                         if disable_splitting:
-                            filename  = newTitle
+                            display_name = newTitle
                         else:
-                            filename  = process_filename(newTitle)
-                            musicfile = open(filename, "wb")
+                            # Open the new music file for the title
+                            display_name = process_filename(newTitle)
+                            musicfile    = open(display_name, "wb")
 
                         # Build our info string containing timestamp, time offset and filename
                         info = (
                             datetime.datetime.now().strftime("%H:%M:%S") +
                             " (" + str(datetime.datetime.now() - start_time).split('.', 2)[0] + "): " +
-                            filename + "\n")
+                            display_name + "\n")
 
                         textfile.write(info)
                         textfile.flush()
@@ -138,4 +140,5 @@ def download_station(station, station_url, disable_splitting):
 
         # User hit Ctrl+C, we need to exit
         except KeyboardInterrupt:
+            print("")
             sys.exit()

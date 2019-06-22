@@ -18,12 +18,12 @@ Also, the [VLC media player](https://www.videolan.org/vlc/) must be installed.
 ## Usage
 ```
 $ python3 pyradio.py -h
-usage: pyradio.py [-h] [-p] [-l] [-d] [-s] [-c] [-b] station [volume]
+usage: pyradio.py [-h] [-p] [-l] [-d] [-s] station [volume]
 
 Play your favorite radio station from the terminal
 
 positional arguments:
-  station         name of station to play, checked on TuneIn if unkown
+  station         name of station to play, checked on TuneIn if unknown
   volume          playback volume (default: 100)
 
 optional arguments:
@@ -32,8 +32,6 @@ optional arguments:
   -l, --local     only use local station database for URL lookup
   -d, --download  save stream to files instead of playing
   -s, --split     do not split files saved with --download
-  -c, --connect   treat the station argument as a direct URL
-  -b, --block     block titles specified in blocked.json
 ```
 
 ### Example
@@ -41,13 +39,28 @@ optional arguments:
 $ python3 pyradio.py "NRJ"
 ```
 
-## Adding Radio Stations
-`pyradio.py` will search all unkown radio stations on [TuneIn](https://tunein.com/) and add them to the local database if anything is found.
-Alternatively you also can add a station manually, to do so, add the URL pointing to the stream to the `stations.json` file.
+## Adding radio stations
+`pyradio.py` will search all unknown radio stations on [TuneIn](https://tunein.com/) and add them to the local database if anything is found.
+Alternatively you also can add a station manually, to do so, add the URL pointing to the stream to the `config.json` file, more specific the `Local Stations` list.
+If you instead just quickly want to test a new station, just pass the stream URL instead of the station name to `pyradio.py`.
 
 Follow this format:
 ```
 "station name": "link_to_stream"
+```
+
+## Blocking radio stations
+`pyradio.py` can block user-specified titles and replace them with either another radio station or a local music file.
+To use this feature, add the title or artist name to the `Blocked titles` list in the `config.json` file and set the replacement with `Replace with`.
+
+Follow this format for the blocked title list:
+```
+"name fragment to block"
+```
+
+And this format for the `Replace with` entry:
+```
+"Replace with": "filename.mp3 or link_to_stream"
 ```
 
 ## Downloading radio streams
