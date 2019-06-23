@@ -154,11 +154,16 @@ def play_station(station_name, station_url, volume):
     stream_player.play()
 
     # Big print statement
-    print(
-        colors.GREEN + "\nYou are listening to: " + colors.ENDC +
-        colors.BOLD + station_name + colors.ENDC +
-        colors.GREEN + " at " + colors.ENDC +
-        colors.UNDERLINE + station_url + colors.ENDC)
+    if station_name.startswith("http"):
+        print(
+            colors.GREEN + "\nYou are listening to: " + colors.ENDC +
+            colors.BOLD + station_name + colors.ENDC)
+    else:
+        print(
+            colors.GREEN + "\nYou are listening to: " + colors.ENDC +
+            colors.BOLD + station_name + colors.ENDC +
+            colors.GREEN + " at " + colors.ENDC +
+            colors.UNDERLINE + station_url + colors.ENDC)
 
     print(colors.YELLOW + "-> Playback started! Ctrl+C to pause!" + colors.ENDC, end="")
 

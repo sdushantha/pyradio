@@ -20,33 +20,50 @@ class colors:
     ENDC      = '\033[0m'
 
 
-# Check if a filename is legal and adjust it if otherwise.
-def process_filename(filename):
+# This function strips our string of any illegal chars.
+def illegal_symbol_filter(filter_string):
     # Filter set for Windows filenames
-    filterSet =  ["/", "\\", "<", ">", "|", ":", "*", "?", "\"", "\n"]
+    filter_set =  ["/", "\\", "<", ">", "|", ":", "*", "?", "\"", "\n"]
 
     # Reduced filter set for Linux
     if sys.platform != "win32":
-        filterSet = ["/"]
+        filter_set = ["/"]
 
     # Satanic filter
-    for toReplace in filterSet:
-        if toReplace in filename:
-            filename = filename.replace(toReplace, "")
+    for to_replace in filter_set:
+        if to_replace in filter_string:
+            filter_string = filter_string.replace(to_replace, "")
+    return filter_string
+
+
+# Check if a filename is legal and adjust it if otherwise.
+def process_filename(filename):
+    filename = illegal_symbol_filter(filename)
 
     # Some names may repeat, so we need to do some processing
     if os.path.exists(filename + ".mp3"):
         cycles = 2
         while os.path.exists(filename + " (" + str(cycles) + ").mp3"):
             cycles = cycles + 1
-
         filename = filename + " (" + str(cycles) + ")"
-
     return filename + ".mp3"
 
 
-# Save a station stream to MP3 files in a specific folder
-def download_station(station, station_url, disable_splitting):
+# A copy-paste of process_filename(), but without the .mp3
+def process_foldername(foldername):
+    foldername = illegal_symbol_filter(foldername)
+
+    # Some names may repeat, so we need to do some processing
+    if os.path.exists(foldername):
+        cycles = 2
+        while os.path.exists(foldername + " (" + str(cycles) + ")"):
+            cycles = cycles + 1
+        foldername = foldername + " (" + str(cycles) + ")"
+    return foldername
+
+
+# Save a station_name stream to MP3 files in a specific folder
+def download_station(station_name, station_url, disable_splitting):
     # We need to add this header so the server sends us metadata
     headers    = {"icy-metadata": "1"}
     start_time = datetime.datetime.now()
@@ -75,18 +92,25 @@ def download_station(station, station_url, disable_splitting):
         print(colors.GREEN + "OK!" + colors.ENDC)
 
         # Big print statement
-        print(
-            colors.GREEN + "\nNow downloading: " + colors.ENDC +
-            colors.BOLD + station + colors.ENDC +
-            colors.GREEN + " from " + colors.ENDC +
-            colors.UNDERLINE + station_url + colors.ENDC)
+        # If we got a direct URL, we dont print the "from" part. It would be redundant.
+        if station_name.startswith("http"):
+            print(
+                colors.GREEN + "\nNow downloading: " + colors.ENDC +
+                colors.BOLD + station_name + colors.ENDC)
+        else:
+            print(
+                colors.GREEN + "\nNow downloading: " + colors.ENDC +
+                colors.BOLD + station_name + colors.ENDC +
+                colors.GREEN + " from " + colors.ENDC +
+                colors.UNDERLINE + station_url + colors.ENDC)
 
         print(colors.YELLOW + "-> Ctrl+C to exit!" + colors.ENDC, end="")
 
         # Create folder if it doesnt exist
-        if not os.path.exists(station):
-            os.mkdir(station)
-        os.chdir(station)
+        station_name = process_foldername(station_name)
+        if not os.path.exists(station_name):
+            os.mkdir(station_name)
+        os.chdir(station_name)
 
         # Title list
         textfile = open("titles.txt", "w")
