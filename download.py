@@ -93,7 +93,7 @@ def download_station(station_name, station_url, disable_splitting):
 
         # Big print statement
         # If we got a direct URL, we dont print the "from" part. It would be redundant.
-        if station_name.startswith("http"):
+        if station_name.lower().startswith("http"):
             print(
                 colors.GREEN + "\nNow downloading: " + colors.ENDC +
                 colors.BOLD + station_name + colors.ENDC)

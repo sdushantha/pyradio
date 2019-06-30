@@ -84,7 +84,7 @@ def initalize_radio(station_name, database):
             sys.exit()
 
         # This is our automatic link detection
-        if station_name.startswith("http"):
+        if station_name.lower().startswith("http"):
             print(colors.YELLOW + "Detected direct URL! " + colors.ENDC)
             station_url = station_name
         else:
@@ -200,7 +200,7 @@ def play_station(station_name, station_url, volume):
                         # because it would stop us from getting new song titles.
                         # Instead, we have to silence it using .audio_set_volume(0).
                         # This may create additional overhead, but I am not aware of
-                        # any better way to do this.
+                        # any better method to do this.
                         stream_player.audio_set_volume(0)
                         adblock_player.play()
 
