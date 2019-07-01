@@ -1,2 +1,6 @@
 # Exclude python files
 __pycache__/
+
+# Exclude music files
+titles.txt
+*.mp3
