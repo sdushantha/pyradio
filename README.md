@@ -71,7 +71,7 @@ A list containing information on when a track was played can be found in `titles
 
 To disable the file splitting and instead save everything to a single file, pass the `-s` option.
 
-## :scroll: License
+## License
 MIT License
 
 Copyright (c) 2018 Siddharth Dushantha, TeilzeitTaco
